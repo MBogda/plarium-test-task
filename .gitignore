@@ -1,0 +1,7 @@
+# ignore Idea files
+*/.idea
+*.iml
+
+# ignore target files
+playrix-service/target
+playrix-client/target
