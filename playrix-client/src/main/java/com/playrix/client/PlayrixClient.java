@@ -17,8 +17,14 @@ package com.playrix.client;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class PlayrixClient {
+
+    private static Logger logger = Logger.getLogger(PlayrixClient.class.getName());
+
     public static void main(String[] args) {
         if (args.length < 2) {
             usage();
@@ -33,22 +39,33 @@ public class PlayrixClient {
         try {
             // todo: process existing files, not only new
             pathListener.listenDirectory(watchEvent -> {
-                Path createdFile = eventHandler.processEvent0(watchEvent);
-                eventHandler.processEvent(createdFile);
+                eventHandler.initEventHandling(watchEvent);
+                try {
+                    List<String> jsonBatch;
+                    do {
+                        jsonBatch = eventHandler.getNextBatch();
+                        for (String json : jsonBatch) {
+                            // todo: check type and json format
+                        }
+                        HttpClient.sendBatch(jsonBatch);
+                    } while (jsonBatch.size() >= batchSize);    // todo: think and refactor
+                } catch (IOException e) {
+                    logger.log(Level.SEVERE, "Error during processing file.", e);
+                }
             });
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.log(Level.SEVERE, "Error during listening directory " + pathToListenTo, e);
         }
     }
 
     private static void usage() {
-        System.err.println("No argument is provided.\nUsage: java PlayrixClient path_to_listen_to");    // todo: move to separate file
+        logger.severe("No argument is provided.\nUsage: java PlayrixClient path_to_listen_to");    // todo: move to separate file
         // todo: not hardcode class name
         System.exit(-1);
     }
 
     private static void notDirectory(Path pathToListenTo) {
-        System.err.println("Provided path " + pathToListenTo + " is not a directory.\nExit.");
+        logger.severe("Provided path " + pathToListenTo + " is not a directory.\nExit.");
         System.exit(-1);
     }
 }

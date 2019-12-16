@@ -6,7 +6,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
 
 public class FileReader {
 
@@ -23,7 +22,7 @@ public class FileReader {
         lines = new ArrayList<>(batchSize);
     }
 
-    public List<String> fetchNext() throws IOException {
+    public List<String> fetchNext() throws IOException {    // todo batchSize not member, but parameter
         lines.clear();
         for (int i = 0; i < batchSize; i++) {
             String line = reader.readLine();

@@ -14,55 +14,46 @@ public class EventHandler {
     private Logger logger = Logger.getLogger(PathListener.class.getName());
     private Path parentDirectory;
     private int batchSize;
+    private FileReader fileReader;
+    private Path createdFile;
 
     public EventHandler(Path parentDirectory, int batchSize) {
         this.parentDirectory = parentDirectory;
         this.batchSize = batchSize;
     }
 
-    public Path processEvent0(WatchEvent<?> watchEvent) {
+    public void initEventHandling(WatchEvent<?> watchEvent) {
         if (watchEvent.kind() == StandardWatchEventKinds.OVERFLOW) {
             logger.severe("OVERFLOW event is received!");
-            return null;
+            return;
         }
 
         @SuppressWarnings("unchecked")
         WatchEvent<Path> pathWatchEvent = (WatchEvent<Path>) watchEvent;
         Path newFileName = pathWatchEvent.context();
-        Path createdFile = parentDirectory.resolve(newFileName);
+        createdFile = parentDirectory.resolve(newFileName);
 
         if (!Files.isReadable(createdFile)) {
             logger.info("File " + createdFile + " is created, but it's not readable - ignored.");
-            return null;
+            return;
         } else if (!Files.isRegularFile(createdFile)) {
             logger.info("File " + createdFile + " is created, but it's not a regular file - ignored.");
-            return null;
+            return;
         }
         logger.info("File " + createdFile + " is created - start processing.");
-        return createdFile;
-    }
-
-    public void processEvent(Path createdFile) {
-        if (createdFile == null) return;
         try {
-            FileReader fileReader = new FileReader(batchSize, createdFile);
-            while (true) {
-                List<String> jsons = fileReader.fetchNext();
-                if (jsons.size() < batchSize) {
-                    break;
-                }
-                // TODO: return jsons
-                // todo: check type and json format
-                // todo: send to service
-                for (String json : jsons) {
-                    System.out.println(json);
-                }
-            }
-            Files.delete(createdFile);
+            fileReader = new FileReader(batchSize, createdFile);
         } catch (IOException e) {
             logger.log(Level.SEVERE, "Error during processing file " + createdFile, e);
-        } finally {
-            logger.info("Finish processing file " + createdFile);
         }
+    }
+
+    public List<String> getNextBatch() throws IOException {
+        List<String> jsons = fileReader.fetchNext();
+        if (jsons.size() < batchSize) {
+            Files.delete(createdFile);
+            logger.info("Finish processing file " + createdFile + " Delete it.");
+        }
+        return jsons;
     }
 }
