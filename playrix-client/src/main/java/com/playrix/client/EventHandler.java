@@ -22,7 +22,7 @@ public class EventHandler {
         this.batchSize = batchSize;
     }
 
-    public void initEventHandling(WatchEvent<?> watchEvent) {
+    public void initEventHandling(WatchEvent<?> watchEvent) throws IOException {
         if (watchEvent.kind() == StandardWatchEventKinds.OVERFLOW) {
             logger.severe("OVERFLOW event is received!");
             return;
@@ -41,11 +41,7 @@ public class EventHandler {
             return;
         }
         logger.info("File " + createdFile + " is created - start processing.");
-        try {
-            fileReader = new FileReader(batchSize, createdFile);
-        } catch (IOException e) {
-            logger.log(Level.SEVERE, "Error during processing file " + createdFile, e);
-        }
+        fileReader = new FileReader(batchSize, createdFile);
     }
 
     public List<String> getNextBatch() throws IOException {

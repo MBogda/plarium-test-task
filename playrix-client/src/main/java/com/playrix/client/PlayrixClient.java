@@ -39,17 +39,17 @@ public class PlayrixClient {
         try {
             // todo: process existing files, not only new
             pathListener.listenDirectory(watchEvent -> {
-                eventHandler.initEventHandling(watchEvent);
                 try {
+                    eventHandler.initEventHandling(watchEvent);
                     List<String> jsonBatch;
                     do {
                         jsonBatch = eventHandler.getNextBatch();
                         for (String json : jsonBatch) {
-                            // todo: check type and json format
+                            // todo: check type and json format, filter empty strings
                         }
-                        HttpClient.sendBatch(jsonBatch);
+                        PlayrixHttpClient.sendBatch(jsonBatch);
                     } while (jsonBatch.size() >= batchSize);    // todo: think and refactor
-                } catch (IOException e) {
+                } catch (IOException | InterruptedException e) {    // todo: think about exceptions handling
                     logger.log(Level.SEVERE, "Error during processing file.", e);
                 }
             });
