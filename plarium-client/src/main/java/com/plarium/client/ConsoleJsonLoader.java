@@ -32,9 +32,14 @@ public class ConsoleJsonLoader {
         }
         Path pathToListenTo = Path.of(args[0]);
         int batchSize = Integer.parseInt(args[1]);
-        if (!Files.isDirectory(pathToListenTo)) {
+        if (!Files.exists(pathToListenTo)) {
+            notExist(pathToListenTo);
+        } else if (!Files.isReadable(pathToListenTo)) {
+            notReadable(pathToListenTo);
+        } else if (!Files.isDirectory(pathToListenTo)) {
             notDirectory(pathToListenTo);
         }
+
         PathListener pathListener = new PathListener(pathToListenTo);
         EventHandler eventHandler = new EventHandler(pathToListenTo, batchSize);
         try {
@@ -70,6 +75,16 @@ public class ConsoleJsonLoader {
 
     private static void notDirectory(Path pathToListenTo) {
         logger.severe("Provided path " + pathToListenTo + " is not a directory.\nExit.");
+        System.exit(-1);
+    }
+
+    private static void notReadable(Path pathToListenTo) {
+        logger.severe("Provided path " + pathToListenTo + " is not readable.\nExit.");
+        System.exit(-1);
+    }
+
+    private static void notExist(Path pathToListenTo) {
+        logger.severe("Provided path " + pathToListenTo + " is not exist.\nExit.");
         System.exit(-1);
     }
 }

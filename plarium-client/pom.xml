@@ -7,15 +7,20 @@
     <groupId>com.plarium.client</groupId>
     <artifactId>Plarium-Client</artifactId>
     <version>1.0.0</version>
+
+    <properties>
+        <maven.compiler.source>12.0.1</maven.compiler.source>
+        <maven.compiler.target>12.0.1</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <build.sourceDirectory>com.plarium.client</build.sourceDirectory>
+    </properties>
+
     <build>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>12.0.1</source>
-                    <target>12.0.1</target>
-                </configuration>
+                <version>3.8.1</version>
             </plugin>
         </plugins>
     </build>

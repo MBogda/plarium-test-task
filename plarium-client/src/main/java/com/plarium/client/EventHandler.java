@@ -6,7 +6,6 @@ import java.nio.file.Path;
 import java.nio.file.StandardWatchEventKinds;
 import java.nio.file.WatchEvent;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class EventHandler {
