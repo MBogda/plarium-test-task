@@ -1,4 +1,4 @@
-package com.playrix.client;
+package com.plarium.client;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -22,10 +22,10 @@ public class EventHandler {
         this.batchSize = batchSize;
     }
 
-    public void initEventHandling(WatchEvent<?> watchEvent) throws IOException {
+    public boolean initEventHandling(WatchEvent<?> watchEvent) throws IOException {
         if (watchEvent.kind() == StandardWatchEventKinds.OVERFLOW) {
             logger.severe("OVERFLOW event is received!");
-            return;
+            return false;
         }
 
         @SuppressWarnings("unchecked")
@@ -35,13 +35,14 @@ public class EventHandler {
 
         if (!Files.isReadable(createdFile)) {
             logger.info("File " + createdFile + " is created, but it's not readable - ignored.");
-            return;
+            return false;
         } else if (!Files.isRegularFile(createdFile)) {
             logger.info("File " + createdFile + " is created, but it's not a regular file - ignored.");
-            return;
+            return false;
         }
         logger.info("File " + createdFile + " is created - start processing.");
         fileReader = new FileReader(batchSize, createdFile);
+        return true;
     }
 
     public List<String> getNextBatch() throws IOException {

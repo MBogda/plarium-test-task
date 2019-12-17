@@ -1,8 +1,7 @@
-package com.playrix.client;
+package com.plarium.client;
 
 import java.io.IOException;
 import java.net.URI;
-import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -11,9 +10,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
 
-public class PlayrixHttpClient {
+public class PlariumHttpClient {
 
-    private static Logger logger = Logger.getLogger(PlayrixHttpClient.class.getName());
+    private static Logger logger = Logger.getLogger(PlariumHttpClient.class.getName());
 
     public static void sendBatch(List<String> batch) throws IOException, InterruptedException {
         // todo: должно быть устойчиво к сетевым сбоям;

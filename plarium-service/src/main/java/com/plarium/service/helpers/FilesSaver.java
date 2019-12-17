@@ -1,4 +1,4 @@
-package com.playrix.service.helpers;
+package com.plarium.service.helpers;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -9,7 +9,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.Map;
 
-import static com.playrix.service.Constants.ROOT_FOLDER;
+import static com.plarium.service.Constants.ROOT_FOLDER;
 
 public class FilesSaver {
 

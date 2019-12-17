@@ -1,4 +1,4 @@
-package com.playrix.client;
+package com.plarium.client;
 
 /*
  * todo не забыть
@@ -20,10 +20,11 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
-public class PlayrixClient {
+public class ConsoleJsonLoader {
 
-    private static Logger logger = Logger.getLogger(PlayrixClient.class.getName());
+    private static Logger logger = Logger.getLogger(ConsoleJsonLoader.class.getName());
 
     public static void main(String[] args) {
         if (args.length < 2) {
@@ -40,15 +41,18 @@ public class PlayrixClient {
             // todo: process existing files, not only new
             pathListener.listenDirectory(watchEvent -> {
                 try {
-                    eventHandler.initEventHandling(watchEvent);
-                    List<String> jsonBatch;
-                    do {
-                        jsonBatch = eventHandler.getNextBatch();
-                        for (String json : jsonBatch) {
-                            // todo: check type and json format, filter empty strings
-                        }
-                        PlayrixHttpClient.sendBatch(jsonBatch);
-                    } while (jsonBatch.size() >= batchSize);    // todo: think and refactor
+                    if (eventHandler.initEventHandling(watchEvent)) {
+                        List<String> jsonBatch;
+                        do {
+                            jsonBatch = eventHandler.getNextBatch();
+                            List<String> filteredBatch = jsonBatch.stream()
+                                    .filter(s -> !s.isBlank())
+                                    .filter(s -> true)     // todo: check type existence and json format
+                                    .collect(Collectors.toList())
+                            ;
+                            PlariumHttpClient.sendBatch(filteredBatch);
+                        } while (jsonBatch.size() >= batchSize);    // todo: think and refactor
+                    }
                 } catch (IOException | InterruptedException e) {    // todo: think about exceptions handling
                     logger.log(Level.SEVERE, "Error during processing file.", e);
                 }
@@ -59,7 +63,7 @@ public class PlayrixClient {
     }
 
     private static void usage() {
-        logger.severe("No argument is provided.\nUsage: java PlayrixClient path_to_listen_to");    // todo: move to separate file
+        logger.severe("No argument is provided.\nUsage: java ConsoleJsonLoader path_to_listen_to");    // todo: move to separate file
         // todo: not hardcode class name
         System.exit(-1);
     }

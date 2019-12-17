@@ -3,5 +3,6 @@
 *.iml
 
 # ignore target files
-playrix-service/target
-playrix-client/target
+plarium-service/target
+plarium-client/target
+

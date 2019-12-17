@@ -1,4 +1,4 @@
-package com.playrix.service.helpers;
+package com.plarium.service.helpers;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -8,7 +8,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.playrix.service.Constants.TYPE_KEY;
+import static com.plarium.service.Constants.TYPE_KEY;
 
 @Component
 public class TypeExtractor {

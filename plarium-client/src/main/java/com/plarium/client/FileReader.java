@@ -1,4 +1,4 @@
-package com.playrix.client;
+package com.plarium.client;
 
 import java.io.BufferedReader;
 import java.io.IOException;
