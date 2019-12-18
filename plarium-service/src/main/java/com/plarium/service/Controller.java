@@ -50,8 +50,7 @@ public class Controller {
     }
 
     @PostMapping("/upload_json")
-    public String uploadJson(@RequestBody List<Map<String, String>> jsonArray) throws InterruptedException {
-        Thread.sleep(100 * 1000);
+    public String uploadJson(@RequestBody List<Map<String, String>> jsonArray) {
         var objectsByType = typeExtractor.extractTypes(jsonArray);
         FilesSaver filesSaver = new FilesSaver(DATE_PATTERN, new Date());
         boolean state = filesSaver.saveTypedObjects(objectsByType);

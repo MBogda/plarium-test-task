@@ -1,6 +1,10 @@
 package com.plarium.service.helpers;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.io.IOException;
+import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
@@ -14,10 +18,12 @@ import static com.plarium.service.Constants.ROOT_FOLDER;
 public class FilesSaver {
 
     String date;    // todo: date as parameter, not member
+    ObjectMapper objectMapper;
 
     public FilesSaver(String pattern, Date date) {
         SimpleDateFormat dateFormat = new SimpleDateFormat(pattern);
         this.date = dateFormat.format(date);
+        this.objectMapper = new ObjectMapper();
     }
 
     public boolean saveTypedObjects(Map<String, Collection<Map<String, String>>> objectsByType) {
@@ -26,18 +32,22 @@ public class FilesSaver {
         }
         for (var entry : objectsByType.entrySet()) {
             String type = entry.getKey();
-            for (var jsonObject : entry.getValue()) {
-                Path file = createFilePath(type);
-                try {
-                    // todo: write to buffer
-                    // todo: convert map to json, not using toString
-                    Files.writeString(file, jsonObject.toString() + "\n", StandardOpenOption.APPEND,
-                            StandardOpenOption.CREATE);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    return false;
-//                    throw e;    // todo
+            Path file = createFilePath(type);
+            try {
+                Writer writer = Files.newBufferedWriter(file, StandardOpenOption.APPEND, StandardOpenOption.CREATE);
+                JsonGenerator jsonGenerator = objectMapper.getFactory().createGenerator(writer);
+                for (var jsonObject : entry.getValue()) {
+                    // todo? if I need generator?
+                    // todo: remove extra space
+                    objectMapper.writeValue(jsonGenerator, jsonObject);
+                    jsonGenerator.writeRaw(System.lineSeparator());
                 }
+                jsonGenerator.close();
+                writer.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+                return false;
+//                    throw e;    // todo
             }
         }
         return true;
