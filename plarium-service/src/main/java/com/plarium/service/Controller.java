@@ -13,8 +13,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import static com.plarium.service.Constants.DATE_PATTERN;
-
 /*
  * todo: Особенности
  * 1. Объект записывается в преобразованном виде.
@@ -39,20 +37,15 @@ public class Controller {
     }
 
     @ResponseBody
-    @GetMapping("/")
+    @GetMapping(Constants.INDEX_ENTRY_POINT)
     public String index() {
-//    public ResponseEntity<String> index() {
-        return "It works!";
-
-//        return "It works! Upload your json on " + "" + " using HTTP POST request.";     // todo?
-
-//        return new ResponseEntity<String>("It works!", HttpStatus.OK);
+        return "It works! Upload your json on " + Constants.UPLOAD_JSON_ENTRY_POINT + " using HTTP POST request.";
     }
 
-    @PostMapping("/upload_json")
+    @PostMapping(Constants.UPLOAD_JSON_ENTRY_POINT)
     public String uploadJson(@RequestBody List<Map<String, String>> jsonArray) {
         var objectsByType = typeExtractor.extractTypes(jsonArray);
-        FilesSaver filesSaver = new FilesSaver(DATE_PATTERN, new Date());
+        FilesSaver filesSaver = new FilesSaver(Constants.DATE_PATTERN, new Date());
         boolean state = filesSaver.saveTypedObjects(objectsByType);
         return state ? "Success!" : "Fail :(";
     }

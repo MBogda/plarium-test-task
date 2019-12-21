@@ -2,6 +2,7 @@ package com.plarium.service.helpers;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.plarium.service.Constants;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -12,8 +13,6 @@ import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Map;
-
-import static com.plarium.service.Constants.ROOT_FOLDER;
 
 public class FilesSaver {
 
@@ -26,6 +25,7 @@ public class FilesSaver {
         this.objectMapper = new ObjectMapper();
     }
 
+    // todo: not boolean, but exceptions
     public boolean saveTypedObjects(Map<String, Collection<Map<String, String>>> objectsByType) {
         if (!initFoldersStructure(objectsByType)) {
             return false;
@@ -69,6 +69,6 @@ public class FilesSaver {
     }
 
     private Path createFilePath(String type) {
-        return Path.of(ROOT_FOLDER, type, date);
+        return Path.of(Constants.ROOT_FOLDER, type, date);
     }
 }
