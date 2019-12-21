@@ -51,10 +51,8 @@ public class ConsoleJsonLoader {
                         do {
                             jsonBatch = eventHandler.getNextBatch();
                             List<String> filteredBatch = jsonBatch.stream()
-                                    .filter(s -> !s.isBlank())
-                                    .filter(s -> true)     // todo: check type existence and json format
-                                    .collect(Collectors.toList())
-                            ;
+                                    .filter(Verifier::verifyFormat)
+                                    .collect(Collectors.toList());
                             PlariumHttpClient.sendBatch(filteredBatch);
                         } while (jsonBatch.size() >= batchSize);    // todo: think and refactor
                     }

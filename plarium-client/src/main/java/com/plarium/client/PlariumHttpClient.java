@@ -9,7 +9,6 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.Iterator;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class PlariumHttpClient {
@@ -17,31 +16,37 @@ public class PlariumHttpClient {
     private static Logger logger = Logger.getLogger(PlariumHttpClient.class.getName());
 
     public static void sendBatch(List<String> batch) throws IOException, InterruptedException {
-        // todo: должно быть устойчиво к сетевым сбоям;
         if (batch.isEmpty()) {
             logger.info("Empty list is skipped.");
             return;
         }
 
         URI uri = URI.create("http://localhost:8080/" + "upload_json");     // todo: not hardcode
+        int retriesCount = 5;   // todo: not hardcode
 
+        String requestBody = buildRequestBody(batch);
         HttpClient client = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(5))      // todo: not hardcode
                 .build();
         HttpRequest request = HttpRequest
                 .newBuilder(uri)
                 .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(buildRequestBody(batch)))
+                .POST(HttpRequest.BodyPublishers.ofString(requestBody))
                 .build();
-        HttpResponse<String> response;
+        logger.info("Sending data: " + requestBody);
         do {
+            HttpResponse<String> response;
             try {
                 response = client.send(request, HttpResponse.BodyHandlers.ofString());
             } catch (HttpConnectTimeoutException e) {
-                logger.log(Level.WARNING, "Connection time out, will try " + 1 + " more times.");
-                continue;
+                if (retriesCount > 0) {
+                    logger.warning("Connection time out, will try " + retriesCount + " more time(s).");
+                    retriesCount--;
+                    continue;
+                } else {
+                    throw e;
+                }
             }
-            logger.info("Request body: " + buildRequestBody(batch));
             if (response.statusCode() == 200) {     // todo: not hardcode
                 logger.info("Request OK");
             } else {
