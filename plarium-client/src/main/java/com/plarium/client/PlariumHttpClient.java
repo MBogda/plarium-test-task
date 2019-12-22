@@ -50,7 +50,7 @@ public class PlariumHttpClient {
             if (response.statusCode() == 200) {     // todo: not hardcode
                 logger.info("Request OK");
             } else {
-                logger.info("Request failed");
+                logger.info("Request failed");  // todo: not delete after failed
             }
             break;
         } while (true);
