@@ -26,7 +26,7 @@ public class PlariumHttpClient {
         this.timeout = timeout;
     }
 
-    public void sendBatch(List<String> batch) throws IOException, InterruptedException {
+    public void sendBatch(List<String> batch) throws IOException, InterruptedException, IllegalStateException {
         if (batch.isEmpty()) {
             logger.info("Empty list is skipped.");
             return;
@@ -68,10 +68,11 @@ public class PlariumHttpClient {
         return stringBuilder.toString();
     }
 
-    private void sendWithRetrying(HttpClient client, HttpRequest request) throws IOException, InterruptedException {
+    private void sendWithRetrying(HttpClient client, HttpRequest request)
+            throws IOException, InterruptedException, IllegalStateException {
         int retriesCount = this.retriesCount;
-        do {
-            HttpResponse<String> response;
+        HttpResponse<String> response;
+        while (true) {
             try {
                 response = client.send(request, HttpResponse.BodyHandlers.ofString());
             } catch (HttpConnectTimeoutException e) {
@@ -83,12 +84,13 @@ public class PlariumHttpClient {
                     throw e;
                 }
             }
-            if (response.statusCode() == HttpURLConnection.HTTP_OK) {
-                logger.info("Request OK");
-            } else {
-                logger.info("Request failed");  // todo: not delete after failed
-            }
             break;
-        } while (true);
+        }
+        if (response.statusCode() == HttpURLConnection.HTTP_OK) {
+            logger.info("Request OK");
+        } else {
+            logger.info("Request failed");
+            throw new IllegalStateException("Request failed");
+        }
     }
 }

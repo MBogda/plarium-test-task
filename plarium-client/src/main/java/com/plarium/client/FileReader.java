@@ -22,7 +22,7 @@ public class FileReader {
         lines = new ArrayList<>(batchSize);
     }
 
-    public List<String> fetchNext() throws IOException {    // todo batchSize not member, but parameter
+    public List<String> fetchNext() throws IOException {
         lines.clear();
         for (int i = 0; i < batchSize; i++) {
             String line = reader.readLine();

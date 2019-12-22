@@ -48,7 +48,7 @@ public class EventHandler {
             if (initSuccessful()) {
                 readAndSend();
             }
-        } catch (IOException | InterruptedException e) {
+        } catch (IOException | InterruptedException | IllegalStateException e) {
             logger.log(Level.SEVERE, "Error during processing file " + processingFile, e);
         }
     }
@@ -58,7 +58,7 @@ public class EventHandler {
             if (watchEventInitSuccessful(watchEvent)) {
                 readAndSend();
             }
-        } catch (IOException | InterruptedException e) {
+        } catch (IOException | InterruptedException | IllegalStateException e) {
             logger.log(Level.SEVERE, "Error during processing file " + processingFile, e);
         }
     }
@@ -90,24 +90,22 @@ public class EventHandler {
         return true;
     }
 
-    private void readAndSend() throws IOException, InterruptedException {
+    private void readAndSend() throws IOException, InterruptedException, IllegalStateException {
         List<String> jsonBatch;
-        do {
-            jsonBatch = getNextBatch();
-            List<String> filteredBatch = jsonBatch.stream()
+        List<String> filteredBatch;
+        while (true) {
+            jsonBatch = fileReader.fetchNext();
+            filteredBatch = jsonBatch.stream()
                     .filter(Verifier::verifyFormat)
                     .collect(Collectors.toList());
-            plariumHttpClient.sendBatch(filteredBatch);
-        } while (jsonBatch.size() >= batchSize);
-    }
-
-    private List<String> getNextBatch() throws IOException {
-        // todo? think more about reading stop (get rid of extra empty lists)
-        List<String> jsons = fileReader.fetchNext();
-        if (jsons.size() < batchSize) {
-            Files.delete(processingFile);
-            logger.info("Finish processing file " + processingFile + " and delete it.");
+            if (!filteredBatch.isEmpty()) {
+                plariumHttpClient.sendBatch(filteredBatch);
+            }
+            if (jsonBatch.size() < batchSize) {
+                Files.delete(processingFile);
+                logger.info("Finish processing file " + processingFile + " and delete it.");
+                break;
+            }
         }
-        return jsons;
     }
 }
