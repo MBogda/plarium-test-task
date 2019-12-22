@@ -18,16 +18,8 @@ import java.util.List;
 import java.util.Map;
 
 /*
- * todo: Особенности
- * 1. Объект записывается в преобразованном виде.
- * 1. Не было ограничений на формат, поэтому это не RESTfull.
- * 1.
- */
-
-/*
- * todo: Не забыть
+ * todo:
  * 1. Дока
- * 1. Readme.md
  */
 
 @RestController
