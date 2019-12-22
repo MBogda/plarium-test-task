@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 
 public class FileReader {
 
@@ -22,15 +23,17 @@ public class FileReader {
         lines = new ArrayList<>(batchSize);
     }
 
-    public List<String> fetchNext() throws IOException {
+    public List<String> fetchNext(Predicate<String> filterPredicate) throws IOException {
         lines.clear();
-        for (int i = 0; i < batchSize; i++) {
+        while (lines.size() < batchSize) {
             String line = reader.readLine();
             if (line == null) {
                 reader.close();
                 break;
             }
-            lines.add(line);
+            if (filterPredicate.test(line)) {
+                lines.add(line);
+            }
         }
         return lines;
     }

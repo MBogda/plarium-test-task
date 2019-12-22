@@ -10,7 +10,6 @@ import java.nio.file.WatchEvent;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 public class EventHandler {
 
@@ -19,25 +18,25 @@ public class EventHandler {
     private PlariumHttpClient plariumHttpClient;
     private FileReader fileReader;
 
-    private Path parentDirectory;
+    private Path pathToListenTo;
     private int batchSize;
     private Path processingFile;
 
-    public EventHandler(Path parentDirectory, Arguments arguments) {
-        this.parentDirectory = parentDirectory;
+    public EventHandler(Arguments arguments) {
+        this.pathToListenTo = Path.of(arguments.getPathToListenTo());
         this.batchSize = arguments.getBatchSize();
-        this.pathListener = new PathListener(parentDirectory);
+        this.pathListener = new PathListener(pathToListenTo);
         this.plariumHttpClient = new PlariumHttpClient(arguments.getServiceUrl(), arguments.getUploadPath(),
                 arguments.getRetriesCount(), arguments.getTimeoutInSeconds());
     }
 
     public void handle() {
         try {
-            Files.list(parentDirectory).forEach(this::handleExistingFile);
+            Files.list(pathToListenTo).forEach(this::handleExistingFile);
             // todo: remove gap between handling existing files and starting new events processing by threads
             pathListener.listenDirectory(this::handleWatchEvent, StandardWatchEventKinds.ENTRY_CREATE);
         } catch (IOException e) {
-            logger.log(Level.SEVERE, "Error during listening directory " + parentDirectory, e);
+            logger.log(Level.SEVERE, "Error during listening directory " + pathToListenTo, e);
             System.exit(-1);
         }
     }
@@ -72,7 +71,7 @@ public class EventHandler {
         @SuppressWarnings("unchecked")
         WatchEvent<Path> pathWatchEvent = (WatchEvent<Path>) watchEvent;
         Path newFileName = pathWatchEvent.context();
-        processingFile = parentDirectory.resolve(newFileName);
+        processingFile = pathToListenTo.resolve(newFileName);
 
         return initSuccessful();
     }
@@ -92,14 +91,10 @@ public class EventHandler {
 
     private void readAndSend() throws IOException, InterruptedException, IllegalStateException {
         List<String> jsonBatch;
-        List<String> filteredBatch;
         while (true) {
-            jsonBatch = fileReader.fetchNext();
-            filteredBatch = jsonBatch.stream()
-                    .filter(Verifier::verifyFormat)
-                    .collect(Collectors.toList());
-            if (!filteredBatch.isEmpty()) {
-                plariumHttpClient.sendBatch(filteredBatch);
+            jsonBatch = fileReader.fetchNext(JsonVerifier::verifyFormat);
+            if (!jsonBatch.isEmpty()) {
+                plariumHttpClient.sendBatch(jsonBatch);
             }
             if (jsonBatch.size() < batchSize) {
                 Files.delete(processingFile);

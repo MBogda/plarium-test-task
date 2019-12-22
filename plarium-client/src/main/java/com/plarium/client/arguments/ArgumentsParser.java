@@ -7,10 +7,10 @@ import java.io.InputStream;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class ArgumentParser {
-    private Logger logger = Logger.getLogger(ArgumentParser.class.getName());
+public class ArgumentsParser {
+    private Logger logger = Logger.getLogger(ArgumentsParser.class.getName());
 
-    public ArgumentParser() {}
+    public ArgumentsParser() {}
 
     public Arguments parse(String[] args) {
         Arguments arguments = new Arguments();
@@ -25,7 +25,11 @@ public class ArgumentParser {
                 switch (arg) {
                     case "-b":
                     case "--batch_size":
-                        arguments.setBatchSize(Integer.parseInt(nextArg));
+                        try {
+                            arguments.setBatchSize(Integer.parseInt(nextArg));
+                        } catch (NumberFormatException e) {
+                            exit("Invalid number format of batch size.");
+                        }
                         break;
                     case "-u":
                     case "--url":
@@ -37,11 +41,19 @@ public class ArgumentParser {
                         break;
                     case "-t":
                     case "--timeout":
-                        arguments.setTimeoutInSeconds(Long.parseLong(nextArg));
+                        try {
+                            arguments.setTimeoutInSeconds(Long.parseLong(nextArg));
+                        } catch (NumberFormatException e) {
+                            exit("Invalid number format of timeout.");
+                        }
                         break;
                     case "-r":
                     case "--retries":
-                        arguments.setRetriesCount(Integer.parseInt(nextArg));
+                        try {
+                            arguments.setRetriesCount(Integer.parseInt(nextArg));
+                        } catch (NumberFormatException e) {
+                            exit("Invalid number format of retries count.");
+                        }
                         break;
                     default:
                         exit("Not known key argument " + arg + " " + nextArg);

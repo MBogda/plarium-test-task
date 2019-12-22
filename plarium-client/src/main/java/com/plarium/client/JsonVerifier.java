@@ -2,7 +2,9 @@ package com.plarium.client;
 
 import java.util.logging.Logger;
 
-public class Verifier {
+public class JsonVerifier {
+
+    private JsonVerifier() {}
 
     private static Logger logger = Logger.getLogger(ConsoleJsonLoader.class.getName());
 
