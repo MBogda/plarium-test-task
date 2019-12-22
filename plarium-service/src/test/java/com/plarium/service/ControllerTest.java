@@ -12,13 +12,17 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.io.IOException;
 import java.io.StringWriter;
+import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.doReturn;
 
@@ -31,18 +35,23 @@ public class ControllerTest {
     private FilesSaver filesSaver;
     private Controller controller;
 
-    private StringWriter stringWriter;
+    private Map<String, StringWriter> stringStringWriterMap;
 
     @Before
     public void before() {
         filesSaver = Mockito.spy(new FilesSaver());
         controller = new Controller(typeExtractor, filesSaver);
+        stringStringWriterMap = new HashMap<>();
         try {
             doCallRealMethod().when(filesSaver).saveTypedObjects(any());
             doCallRealMethod().when(filesSaver).setDate(any());
             doReturn(null).when(filesSaver).createDirectories(any());
-            stringWriter = new StringWriter(20);
-            doReturn(stringWriter).when(filesSaver).getFileWriter(any());
+            doAnswer(invocation -> {
+                        Path path = invocation.getArgumentAt(0, Path.class);
+                        return stringStringWriterMap.computeIfAbsent(
+                                path.getName(path.getNameCount() - 2).toString(),
+                                s -> new StringWriter());
+                    }).when(filesSaver).getFileWriter(any());
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -56,9 +65,80 @@ public class ControllerTest {
     }
 
     @Test
-    public void uploadJson() {
+    public void uploadJson_singleJson() {
         String result = controller.uploadJson(List.of(Map.of("type", "log")));
         assertThat(result, containsString("Success!"));
-        assertThat(stringWriter.toString(), equalTo("{\"type\":\"log\"}\n"));
+        assertThat(stringStringWriterMap.get("log").toString(), equalTo("{\"type\":\"log\"}\n"));
+    }
+
+    @Test
+    public void uploadJson_singleJsonWithSeveralFields() {
+        String result = controller.uploadJson(List.of(Map.of("type", "log", "field2", "value2", "xx", "y")));
+        assertThat(result, containsString("Success!"));
+        assertThat(stringStringWriterMap.get("log").toString(),
+                anyOf(
+                        equalTo("{\"type\":\"log\",\"field2\":\"value2\",\"xx\":\"y\"}\n"),
+                        equalTo("{\"type\":\"log\",\"xx\":\"y\",\"field2\":\"value2\"}\n"),
+                        equalTo("{\"field2\":\"value2\",\"type\":\"log\",\"xx\":\"y\"}\n"),
+                        equalTo("{\"field2\":\"value2\",\"xx\":\"y\",\"type\":\"log\"}\n"),
+                        equalTo("{\"xx\":\"y\",\"type\":\"log\",\"field2\":\"value2\"}\n"),
+                        equalTo("{\"xx\":\"y\",\"field2\":\"value2\",\"type\":\"log\"}\n")
+                ));
+    }
+
+    @Test
+    public void uploadJson_severalJsonsWithSameType() {
+        String result = controller.uploadJson(List.of(
+                Map.of("type", "log"),
+                Map.of("type", "log"),
+                Map.of("type", "log"),
+                Map.of("type", "log")));
+        assertThat(result, containsString("Success!"));
+        assertThat(stringStringWriterMap.get("log").toString(),
+                equalTo("{\"type\":\"log\"}\n{\"type\":\"log\"}\n{\"type\":\"log\"}\n{\"type\":\"log\"}\n"));
+    }
+
+    @Test
+    public void uploadJson_severalJsonsWithDifferentTypes() {
+        String result = controller.uploadJson(List.of(
+                Map.of("type", "log", "num", "0"),
+                Map.of("type", "type2", "num", "1"),
+                Map.of("type", "log", "num", "2"),
+                Map.of("type", "single_type", "num", "3"),
+                Map.of("type", "type2", "num", "4"),
+                Map.of("type", "log", "num", "5")
+        ));
+        assertThat(result, containsString("Success!"));
+        assertThat(stringStringWriterMap.get("single_type").toString(),
+                anyOf(
+                        equalTo("{\"type\":\"single_type\",\"num\":\"3\"}\n"),
+                        equalTo("{\"num\":\"3\",\"type\":\"single_type\"}\n")
+                ));
+        assertThat(stringStringWriterMap.get("type2").toString(),
+                anyOf(
+                        equalTo("{\"type\":\"type2\",\"num\":\"1\"}\n{\"type\":\"type2\",\"num\":\"4\"}\n"),
+                        equalTo("{\"type\":\"type2\",\"num\":\"1\"}\n{\"num\":\"4\",\"type\":\"type2\"}\n"),
+                        equalTo("{\"num\":\"1\",\"type\":\"type2\"}\n{\"type\":\"type2\",\"num\":\"4\"}\n"),
+                        equalTo("{\"num\":\"1\",\"type\":\"type2\"}\n{\"num\":\"4\",\"type\":\"type2\"}\n")
+                ));
+        assertThat(stringStringWriterMap.get("log").toString(),
+                anyOf(
+                        equalTo("{\"type\":\"log\",\"num\":\"0\"}\n{\"type\":\"log\",\"num\":\"2\"}\n"
+                                + "{\"type\":\"log\",\"num\":\"5\"}\n"),
+                        equalTo("{\"type\":\"log\",\"num\":\"0\"}\n{\"type\":\"log\",\"num\":\"2\"}\n"
+                                + "{\"num\":\"5\",\"type\":\"log\"}\n"),
+                        equalTo("{\"type\":\"log\",\"num\":\"0\"}\n{\"num\":\"2\",\"type\":\"log\"}\n"
+                                + "{\"type\":\"log\",\"num\":\"5\"}\n"),
+                        equalTo("{\"type\":\"log\",\"num\":\"0\"}\n{\"num\":\"2\",\"type\":\"log\"}\n"
+                                + "{\"num\":\"5\",\"type\":\"log\"}\n"),
+                        equalTo("{\"num\":\"0\",\"type\":\"log\"}\n{\"type\":\"log\",\"num\":\"2\"}\n"
+                                + "{\"type\":\"log\",\"num\":\"5\"}\n"),
+                        equalTo("{\"num\":\"0\",\"type\":\"log\"}\n{\"type\":\"log\",\"num\":\"2\"}\n"
+                                + "{\"num\":\"5\",\"type\":\"log\"}\n"),
+                        equalTo("{\"num\":\"0\",\"type\":\"log\"}\n{\"num\":\"2\",\"type\":\"log\"}\n"
+                                + "{\"type\":\"log\",\"num\":\"5\"}\n"),
+                        equalTo("{\"num\":\"0\",\"type\":\"log\"}\n{\"num\":\"2\",\"type\":\"log\"}\n"
+                                + "{\"num\":\"5\",\"type\":\"log\"}\n")
+                ));
     }
 }

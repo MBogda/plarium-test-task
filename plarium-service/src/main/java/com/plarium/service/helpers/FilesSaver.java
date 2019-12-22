@@ -1,6 +1,5 @@
 package com.plarium.service.helpers;
 
-import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.plarium.service.Constants;
 import org.springframework.stereotype.Component;
@@ -53,14 +52,10 @@ public class FilesSaver {
             String type = entry.getKey();
             Path file = createFilePath(type);
             Writer writer = getFileWriter(file);
-            JsonGenerator jsonGenerator = objectMapper.getFactory().createGenerator(writer);
             for (var jsonObject : entry.getValue()) {
-                // todo? if I need generator?
-                // todo: remove extra space
-                objectMapper.writeValue(jsonGenerator, jsonObject);
-                jsonGenerator.writeRaw(System.lineSeparator());
+                objectMapper.writeValue(writer, jsonObject);
+                writer.write(System.lineSeparator());
             }
-            jsonGenerator.close();
             writer.close();
         }
     }
