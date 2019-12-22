@@ -147,6 +147,18 @@ public class ControllerTest {
     }
 
     @Test
+    public void uploadJson_severalRequests() {
+        ResponseEntity<String> response = controller.uploadJson(List.of(Map.of("type", "log")));
+        assertThat(response.getStatusCode(), equalTo(HttpStatus.OK));
+        assertThat(response.getBody(), containsString("Success!"));
+        response = controller.uploadJson(List.of(Map.of("type", "log")));
+        assertThat(response.getStatusCode(), equalTo(HttpStatus.OK));
+        assertThat(response.getBody(), containsString("Success!"));
+        assertThat(stringStringWriterMap.get("log").toString(),
+                equalTo("{\"type\":\"log\"}\n{\"type\":\"log\"}\n"));
+    }
+
+    @Test
     public void uploadJson_JsonWithoutType() {
         ResponseEntity<String> response = controller.uploadJson(List.of(Map.of("field", "log")));
         assertThat(response.getStatusCode(), equalTo(HttpStatus.BAD_REQUEST));
