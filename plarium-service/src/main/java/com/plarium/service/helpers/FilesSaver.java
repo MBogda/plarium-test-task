@@ -31,11 +31,9 @@ public class FilesSaver {
         this.date = dateFormat.format(date);
     }
 
-    // todo: not boolean, but exceptions
-    public boolean saveTypedObjects(Map<String, Collection<Map<String, String>>> objectsByType) throws IOException {
+    public void saveTypedObjects(Map<String, Collection<Map<String, String>>> objectsByType) throws IOException {
         initFoldersStructure(objectsByType);
         writeToFiles(objectsByType);
-        return true;
     }
 
     private void initFoldersStructure(Map<String, Collection<Map<String, String>>> objectsByType) throws IOException {
@@ -64,8 +62,8 @@ public class FilesSaver {
         return Path.of(Constants.ROOT_FOLDER, type, date);
     }
 
-    public Path createDirectories(Path folder) throws IOException {
-        return Files.createDirectories(folder);
+    public void createDirectories(Path folder) throws IOException {
+        Files.createDirectories(folder);
     }
 
     public Writer getFileWriter(Path file) throws IOException {

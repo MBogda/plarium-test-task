@@ -16,7 +16,8 @@ public class TypeExtractor {
     @Autowired
     public TypeExtractor() {}
 
-    public Map<String, Collection<Map<String, String>>> extractTypes(List<Map<String, String>> jsonArray) {
+    public Map<String, Collection<Map<String, String>>> extractTypes(List<Map<String, String>> jsonArray)
+            throws IllegalArgumentException {
         Map<String, Collection<Map<String, String>>> objectsByType = new HashMap<>();
         for (int i = 0; i < jsonArray.size(); ++i) {
             Map<String, String> jsonObject = jsonArray.get(i);

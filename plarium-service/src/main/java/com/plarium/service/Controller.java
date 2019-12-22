@@ -3,6 +3,8 @@ package com.plarium.service;
 import com.plarium.service.helpers.FilesSaver;
 import com.plarium.service.helpers.TypeExtractor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -10,6 +12,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -46,18 +49,21 @@ public class Controller {
     }
 
     @PostMapping(Constants.UPLOAD_JSON_ENTRY_POINT)
-    public String uploadJson(@RequestBody List<Map<String, String>> jsonArray) {
-        var objectsByType = typeExtractor.extractTypes(jsonArray);  // todo: not server error, but bad request
+    public ResponseEntity<String> uploadJson(@RequestBody List<Map<String, String>> jsonArray) {
+        Map<String, Collection<Map<String, String>>> objectsByType;
+        try {
+            objectsByType = typeExtractor.extractTypes(jsonArray);
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
         filesSaver.setDate(new Date());
         try {
             filesSaver.saveTypedObjects(objectsByType);
-            return "Success!";
+            return new ResponseEntity<>("Success!", HttpStatus.OK);
         } catch (IOException e) {
             e.printStackTrace();
-//            throw e;
-//            throw new HttpServerErrorException.InternalServerError("Fail :( Please try again", "", HttpHeaders.EMPTY, null, null);
-            return "Fail :(";   // todo: status code
-//            return new ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>("Fail :( Please try again.", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }
