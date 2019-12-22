@@ -14,6 +14,9 @@ package com.plarium.client;
  * 1.
  */
 
+import com.plarium.client.arguments.ArgumentParser;
+import com.plarium.client.arguments.Arguments;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -27,11 +30,9 @@ public class ConsoleJsonLoader {
     private static Logger logger = Logger.getLogger(ConsoleJsonLoader.class.getName());
 
     public static void main(String[] args) {
-        if (args.length < 2) {
-            usage();
-        }
-        Path pathToListenTo = Path.of(args[0]);
-        int batchSize = Integer.parseInt(args[1]);
+        ArgumentParser argumentParser = new ArgumentParser();
+        Arguments arguments = argumentParser.parse(args);
+        Path pathToListenTo = Path.of(arguments.getPathToListenTo());
         if (!Files.exists(pathToListenTo)) {
             notExist(pathToListenTo);
         } else if (!Files.isReadable(pathToListenTo)) {
@@ -41,7 +42,7 @@ public class ConsoleJsonLoader {
         }
 
         PathListener pathListener = new PathListener(pathToListenTo);
-        EventHandler eventHandler = new EventHandler(pathToListenTo, batchSize);
+        EventHandler eventHandler = new EventHandler(pathToListenTo, arguments.getBatchSize());
         try {
             // todo: process existing files, not only new
             pathListener.listenDirectory(watchEvent -> {
@@ -54,7 +55,7 @@ public class ConsoleJsonLoader {
                                     .filter(Verifier::verifyFormat)
                                     .collect(Collectors.toList());
                             PlariumHttpClient.sendBatch(filteredBatch);
-                        } while (jsonBatch.size() >= batchSize);    // todo: think and refactor
+                        } while (jsonBatch.size() >= arguments.getBatchSize());    // todo: think and refactor
                     }
                 } catch (IOException | InterruptedException e) {    // todo: think about exceptions handling
                     logger.log(Level.SEVERE, "Error during processing file.", e);
@@ -65,24 +66,18 @@ public class ConsoleJsonLoader {
         }
     }
 
-    private static void usage() {
-        logger.severe("No argument is provided.\nUsage: java ConsoleJsonLoader path_to_listen_to");    // todo: move to separate file
-        // todo: not hardcode class name
-        System.exit(-1);
-    }
-
     private static void notDirectory(Path pathToListenTo) {
-        logger.severe("Provided path " + pathToListenTo + " is not a directory.\nExit.");
+        System.out.println("Provided path " + pathToListenTo + " is not a directory.\nExit.");
         System.exit(-1);
     }
 
     private static void notReadable(Path pathToListenTo) {
-        logger.severe("Provided path " + pathToListenTo + " is not readable.\nExit.");
+        System.out.println("Provided path " + pathToListenTo + " is not readable.\nExit.");
         System.exit(-1);
     }
 
     private static void notExist(Path pathToListenTo) {
-        logger.severe("Provided path " + pathToListenTo + " is not exist.\nExit.");
+        System.out.println("Provided path " + pathToListenTo + " is not exist.\nExit.");
         System.exit(-1);
     }
 }

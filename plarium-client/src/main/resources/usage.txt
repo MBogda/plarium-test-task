@@ -1,0 +1,9 @@
+Usage:
+    java $program_name $path_to_listen_to {-k value | --key value}
+Arguments:
+    $path_to_listen_to - (required) folder that will be scanned to new files to send.
+    $batch_size - maximum number of JSONs in one request (default $default_batch_size).
+    $url - URL of service where scanned JSONs will be uploaded (default $default_url).
+    $upload_path - entry point of service where HHTP POST request will be sent (default $default_upload_path).
+    $timeout - connection timeout in seconds (default $default_timeout).
+    $retries - number of retries (default $default_retries).
