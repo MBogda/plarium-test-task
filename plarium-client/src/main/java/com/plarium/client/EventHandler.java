@@ -32,6 +32,7 @@ public class EventHandler {
 
     public void handle() {
         try {
+            logger.info("Scanning path " + pathToListenTo + " for existing files.");
             Files.list(pathToListenTo).forEach(this::handleExistingFile);
             // todo: remove gap between handling existing files and starting new events processing by threads
             pathListener.listenDirectory(this::handleWatchEvent, StandardWatchEventKinds.ENTRY_CREATE);
