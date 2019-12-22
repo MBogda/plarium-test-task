@@ -3,7 +3,6 @@ package com.plarium.client;
 import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
-import java.nio.file.StandardWatchEventKinds;
 import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
@@ -20,9 +19,10 @@ public class PathListener {
         this.pathToListenTo = pathToListenTo;
     }
 
-    public void listenDirectory(Consumer<WatchEvent<?>> consumer) throws IOException {
+    @SafeVarargs
+    public final void listenDirectory(Consumer<WatchEvent<?>> consumer, WatchEvent.Kind<Path>... events) throws IOException {
         WatchService watcher = FileSystems.getDefault().newWatchService();
-        pathToListenTo.register(watcher, StandardWatchEventKinds.ENTRY_CREATE);
+        pathToListenTo.register(watcher, events);
         logger.info("Start listening path " + pathToListenTo);
         while (true) {
             WatchKey watchKey;
@@ -30,7 +30,8 @@ public class PathListener {
                 watchKey = watcher.take();
             } catch (InterruptedException e) {
                 logger.log(Level.SEVERE, "Program is interrupted.", e);
-                return;
+                System.exit(-1);
+                return;     // otherwise there's an error: Variable 'watchKey' might not have been initialized
             }
             for (WatchEvent<?> watchEvent : watchKey.pollEvents()) {
                 consumer.accept(watchEvent);
