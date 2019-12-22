@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -30,10 +31,12 @@ import java.util.Map;
 public class Controller {
 
     private TypeExtractor typeExtractor;
+    private FilesSaver filesSaver;
 
     @Autowired
-    public Controller(TypeExtractor typeExtractor) {
+    public Controller(TypeExtractor typeExtractor, FilesSaver filesSaver) {
         this.typeExtractor = typeExtractor;
+        this.filesSaver = filesSaver;
     }
 
     @ResponseBody
@@ -44,9 +47,17 @@ public class Controller {
 
     @PostMapping(Constants.UPLOAD_JSON_ENTRY_POINT)
     public String uploadJson(@RequestBody List<Map<String, String>> jsonArray) {
-        var objectsByType = typeExtractor.extractTypes(jsonArray);
-        FilesSaver filesSaver = new FilesSaver(Constants.DATE_PATTERN, new Date());
-        boolean state = filesSaver.saveTypedObjects(objectsByType);
-        return state ? "Success!" : "Fail :(";
+        var objectsByType = typeExtractor.extractTypes(jsonArray);  // todo: not server error, but bad request
+        filesSaver.setDate(new Date());
+        try {
+            filesSaver.saveTypedObjects(objectsByType);
+            return "Success!";
+        } catch (IOException e) {
+            e.printStackTrace();
+//            throw e;
+//            throw new HttpServerErrorException.InternalServerError("Fail :( Please try again", "", HttpHeaders.EMPTY, null, null);
+            return "Fail :(";   // todo: status code
+//            return new ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }
