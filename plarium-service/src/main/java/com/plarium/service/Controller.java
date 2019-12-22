@@ -60,7 +60,7 @@ public class Controller {
         filesSaver.setDate(new Date());
         try {
             filesSaver.saveTypedObjects(objectsByType);
-            return new ResponseEntity<>("Success!", HttpStatus.OK);
+            return new ResponseEntity<>("Success!", HttpStatus.CREATED);
         } catch (IOException e) {
             e.printStackTrace();
             return new ResponseEntity<>("Fail :( Please try again.", HttpStatus.INTERNAL_SERVER_ERROR);

@@ -66,7 +66,7 @@ public class ControllerTest {
     @Test
     public void uploadJson_singleJson() {
         ResponseEntity<String> response = controller.uploadJson(List.of(Map.of("type", "log")));
-        assertThat(response.getStatusCode(), equalTo(HttpStatus.OK));
+        assertThat(response.getStatusCode(), equalTo(HttpStatus.CREATED));
         assertThat(response.getBody(), containsString("Success!"));
         assertThat(stringStringWriterMap.get("log").toString(), equalTo("{\"type\":\"log\"}\n"));
     }
@@ -75,7 +75,7 @@ public class ControllerTest {
     public void uploadJson_singleJsonWithSeveralFields() {
         ResponseEntity<String> response = controller.uploadJson(List.of(
                 Map.of("type", "log", "field2", "value2", "xx", "y")));
-        assertThat(response.getStatusCode(), equalTo(HttpStatus.OK));
+        assertThat(response.getStatusCode(), equalTo(HttpStatus.CREATED));
         assertThat(response.getBody(), containsString("Success!"));
         assertThat(stringStringWriterMap.get("log").toString(),
                 anyOf(
@@ -95,7 +95,7 @@ public class ControllerTest {
                 Map.of("type", "log"),
                 Map.of("type", "log"),
                 Map.of("type", "log")));
-        assertThat(response.getStatusCode(), equalTo(HttpStatus.OK));
+        assertThat(response.getStatusCode(), equalTo(HttpStatus.CREATED));
         assertThat(response.getBody(), containsString("Success!"));
         assertThat(stringStringWriterMap.get("log").toString(),
                 equalTo("{\"type\":\"log\"}\n{\"type\":\"log\"}\n{\"type\":\"log\"}\n{\"type\":\"log\"}\n"));
@@ -111,7 +111,7 @@ public class ControllerTest {
                 Map.of("type", "type2", "num", "4"),
                 Map.of("type", "log", "num", "5")
         ));
-        assertThat(response.getStatusCode(), equalTo(HttpStatus.OK));
+        assertThat(response.getStatusCode(), equalTo(HttpStatus.CREATED));
         assertThat(response.getBody(), containsString("Success!"));
         assertThat(stringStringWriterMap.get("single_type").toString(),
                 anyOf(
@@ -149,10 +149,10 @@ public class ControllerTest {
     @Test
     public void uploadJson_severalRequests() {
         ResponseEntity<String> response = controller.uploadJson(List.of(Map.of("type", "log")));
-        assertThat(response.getStatusCode(), equalTo(HttpStatus.OK));
+        assertThat(response.getStatusCode(), equalTo(HttpStatus.CREATED));
         assertThat(response.getBody(), containsString("Success!"));
         response = controller.uploadJson(List.of(Map.of("type", "log")));
-        assertThat(response.getStatusCode(), equalTo(HttpStatus.OK));
+        assertThat(response.getStatusCode(), equalTo(HttpStatus.CREATED));
         assertThat(response.getBody(), containsString("Success!"));
         assertThat(stringStringWriterMap.get("log").toString(),
                 equalTo("{\"type\":\"log\"}\n{\"type\":\"log\"}\n"));

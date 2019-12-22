@@ -86,7 +86,7 @@ public class PlariumHttpClient {
             }
             break;
         }
-        if (response.statusCode() == HttpURLConnection.HTTP_OK) {
+        if (response.statusCode() == HttpURLConnection.HTTP_CREATED) {
             logger.info("Request OK");
         } else {
             logger.info("Request failed");
