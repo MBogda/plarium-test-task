@@ -1,5 +1,7 @@
 package com.plarium.client;
 
+import com.plarium.client.arguments.Arguments;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -14,16 +16,19 @@ public class EventHandler {
 
     private Logger logger = Logger.getLogger(PathListener.class.getName());
     private PathListener pathListener;
+    private PlariumHttpClient plariumHttpClient;
     private FileReader fileReader;
 
     private Path parentDirectory;
     private int batchSize;
     private Path processingFile;
 
-    public EventHandler(Path parentDirectory, int batchSize) {
+    public EventHandler(Path parentDirectory, Arguments arguments) {
         this.parentDirectory = parentDirectory;
-        this.batchSize = batchSize;
+        this.batchSize = arguments.getBatchSize();
         this.pathListener = new PathListener(parentDirectory);
+        this.plariumHttpClient = new PlariumHttpClient(arguments.getServiceUrl(), arguments.getUploadPath(),
+                arguments.getRetriesCount(), arguments.getTimeoutInSeconds());
     }
 
     public void handle() {
@@ -92,7 +97,7 @@ public class EventHandler {
             List<String> filteredBatch = jsonBatch.stream()
                     .filter(Verifier::verifyFormat)
                     .collect(Collectors.toList());
-            PlariumHttpClient.sendBatch(filteredBatch);
+            plariumHttpClient.sendBatch(filteredBatch);
         } while (jsonBatch.size() >= batchSize);
     }
 

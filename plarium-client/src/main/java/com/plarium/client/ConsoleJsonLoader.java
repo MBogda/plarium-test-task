@@ -33,7 +33,7 @@ public class ConsoleJsonLoader {
             notDirectory(pathToListenTo);
         }
 
-        new EventHandler(pathToListenTo, arguments.getBatchSize()).handle();
+        new EventHandler(pathToListenTo, arguments).handle();
     }
 
     private static void notDirectory(Path pathToListenTo) {
