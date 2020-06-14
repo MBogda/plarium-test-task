@@ -17,11 +17,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-/*
- * todo:
- * 1. Дока
+/**
+ * Единственный контроллер веб-сервиса.
  */
-
 @RestController
 public class Controller {
 
@@ -34,12 +32,23 @@ public class Controller {
         this.filesSaver = filesSaver;
     }
 
+    /**
+     * Страница, успешно отвечающая на GET-запрос.
+     * @return Сообщение со статусом 200 OK.
+     */
     @ResponseBody
     @GetMapping(Constants.INDEX_ENTRY_POINT)
     public String index() {
         return "It works! Upload your json on " + Constants.UPLOAD_JSON_ENTRY_POINT + " using HTTP POST request.";
     }
 
+    /**
+     * Страница для загрузки данных POST запросом в формате JSON array.
+     * @param jsonArray десериализованные загружаемые данные.
+     * @return 201 Created в случае успешной записи переданных объектов;
+     *         400 Bad Request в случае ошибки в переданных данных;
+     *         500 Internal Server Error в случае внутренних ошибок (например, нет доступа к папке записи). todo
+     */
     @PostMapping(Constants.UPLOAD_JSON_ENTRY_POINT)
     public ResponseEntity<String> uploadJson(@RequestBody List<Map<String, String>> jsonArray) {
         Map<String, Collection<Map<String, String>>> objectsByType;
